@@ -1,0 +1,68 @@
+# Pod with container that includes all developer tooling.
+# Intended for use by devs and ci to interact with the cluster resources from a single place
+
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: "cloud-command"
+  labels:
+    app.kubernetes.io/name: "{{ .Chart.Name }}"
+    app.kubernetes.io/version: "{{ .Chart.Version }}"
+spec:
+  replicas: 1
+  serviceName: "cloud-command"
+  revisionHistoryLimit: 5
+  selector:
+    matchLabels:
+      component: "cloud-command"
+  template:
+    metadata:
+      labels:
+        component: "cloud-command"
+    spec:
+      terminationGracePeriodSeconds: 0
+{{- if .Values.initContainer.enabled }}
+      initContainers:
+{{ include "drupal.initContainer" . | indent 6 }}
+{{- end }}
+      containers:
+        - name: "cloud-command"
+          image: {{ .Values.cloudCommand.image }}
+          resources:
+{{ toYaml .Values.cloudCommand.resources | indent 12 }}
+          env:
+{{- include "drupal.env" . | indent 12 }}
+{{- if .Values.extraEnvs }}
+{{ toYaml .Values.extraEnvs | indent 12 }}
+{{- end }}
+          volumeMounts:
+            - name: "php-configmap"
+              mountPath: "/usr/local/etc/php/conf.d/zzz-custom.ini"
+              subPath: "zzz-custom.ini"
+            - name: "php-configmap"
+              mountPath: "/usr/local/etc/php-fpm.d/zzz-custom.conf"
+              subPath: "zzz-custom.conf"
+            - name: "drupal-source"
+              mountPath: "/var/www/docroot"
+              subPath: "docroot"
+            - name: "drupal-source"
+              mountPath: "/var/www/config"
+              subPath: "config"
+            - name: "drupal-source"
+              mountPath: "/var/www/vendor"
+              subPath: "vendor"
+            - name: "drupal-source"
+              mountPath: "/var/www/composer.json"
+              subPath: "composer.json"
+{{- if .Values.extraVolumeMounts }}
+{{ toYaml .Values.extraVolumeMounts | indent 12 }}
+{{- end }}
+      volumes:
+        - name: "php-configmap"
+          configMap:
+            name: "cloud-command-php"
+        - name: "drupal-source"
+{{ toYaml .Values.applicationVolume | indent 10 }}
+{{- if .Values.extraVolumes }}
+{{ toYaml .Values.extraVolumes | indent 8 }}
+{{- end }}
