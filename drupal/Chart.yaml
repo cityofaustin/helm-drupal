@@ -2,5 +2,6 @@ apiVersion: v2
 name: drupal
 description: A Helm chart for managing a Drupal application in Kubernetes
 type: application
+version: 3.0.4
 # If you're testing locally, you'll need to add the version to this.  It's currently added by CI via circle-create-new-version.sh
 # ie: version: 2.0.0-alpha
