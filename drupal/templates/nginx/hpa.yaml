@@ -18,12 +18,16 @@ spec:
     - type: Resource
       resource:
         name: cpu
-        targetAverageUtilization: {{ .Values.nginx.autoscaling.targetCPUUtilizationPercentage }}
+        target:
+          type: Utilization
+          averageUtilization: {{ .Values.nginx.autoscaling.targetCPUUtilizationPercentage }}
   {{- end }}
   {{- if .Values.nginx.autoscaling.targetMemoryUtilizationPercentage }}
     - type: Resource
       resource:
         name: memory
-        targetAverageUtilization: {{ .Values.nginx.autoscaling.targetMemoryUtilizationPercentage }}
+        target:
+          type: Utilization
+          averageUtilization: {{ .Values.nginx.autoscaling.targetMemoryUtilizationPercentage }}
   {{- end }}
 {{- end }}
